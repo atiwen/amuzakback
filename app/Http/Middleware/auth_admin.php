@@ -15,6 +15,7 @@ class auth_admin
         $currentRouteName = Route::currentRouteName();
         if ($currentRouteName && strpos($currentRouteName, 'admin.') === 0) {
             if ($request->user() != null) {
+                // Updated to check for role instead of verify field
                 if ($request->user()->role == 'admin') {
                     return $next($request);
                 } else {
