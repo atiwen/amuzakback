@@ -26,7 +26,7 @@ class AdminCourseTest extends TestCase
         
         // ایجاد کاربر معمولی
         $this->regularUser = User::factory()->create([
-            'role' => 'user'
+            'role' => 'student'
         ]);
     }
 
