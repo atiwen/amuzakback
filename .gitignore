@@ -1,5 +1,25 @@
-The provided input shows that only the `.gitignore` file itself was modified, with no other file changes detected. Since there are no build artifacts, dependencies, or temporary files to ignore, and the change list contains only the `.gitignore` file itself, no additional ignore rules are needed.
+/.phpunit.cache
+/node_modules
+/vendor
+/public/hot
+/public/storage
+/public/vendors
+/public/build
+/storage
 
-Therefore, the optimized .gitignore content is empty.
-
-(empty — output nothing)
+/resources
+se.env
+.env
+.env.backup
+.env.production
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+auth.json
+npm-debug.log
+yarn-error.log
+/.fleet
+/.idea
+/.vscode
+res.zip
+vendor.zip
