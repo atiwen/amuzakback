@@ -1,4 +1,5 @@
-```
-# Test directories
-tests/
-```
+The provided input shows that only the `.gitignore` file itself was modified, with no other file changes detected. Since there are no build artifacts, dependencies, or temporary files to ignore, and the change list contains only the `.gitignore` file itself, no additional ignore rules are needed.
+
+Therefore, the optimized .gitignore content is empty.
+
+(empty — output nothing)
