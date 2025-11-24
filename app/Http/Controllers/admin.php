@@ -12,12 +12,15 @@ use App\Models\Photo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Auth;
 
 
 class admin extends Controller
 {
     public function login(Request $request)
     {
+        // Don't require authentication for the login page itself
         return Jetstream::inertia()->render($request, 'Admin/Login', []);
         // $user = DB::table('users')->where('id', $request->user()->id)->get();
         // if ($user[0]->verify > 1) {
@@ -27,70 +30,75 @@ class admin extends Controller
     }
     public function adm_status(Request $request)
     {
-        $user = DB::table('users')->where('id', $request->user()->id)->get();
-        if ($user[0]->verify > 1) {
-            $notifs = DB::table('notifs')->where('is_readed', false)->where('is_user', 0)->orderBy('created', 'desc')->limit(7)->get();
-            $deposits = DB::table('verify_req')->where('type', 0)->where('status', 0)->get();
-            $debits = DB::table('verify_req')->where('type', 1)->where('status', 0)->get();
-            $buys = DB::table('verify_req')->where('type', 2)->where('status', 0)->get();
-            $sells = DB::table('verify_req')->where('type', 3)->where('status', 0)->get();
-            $dep_t = DB::table('verify_req')->where('type', 4)->where('status', 0)->get();
-            $deb_t = DB::table('verify_req')->where('type', 5)->where('status', 0)->get();
-            $hesabs = DB::table('bank_info')->orderBy('time', 'desc')->where('verify', 0)->get();
-            $acc = DB::table('users')->orderBy('created_at', 'desc')->where('verify', 0)->get();
-            $counts = array(
-                "dep" => count($deposits),
-                "dept" => count($dep_t),
-                "deb" => count($debits),
-                "debt" => count($deb_t),
-                "buy" => count($buys),
-                "sell" => count($sells),
-                "hesab" => count($hesabs),
-                "acc" => count($acc),
-            );
-            $all = array(
-                $notifs,
-                $counts
-            );
-            return $all;
-        } else {
-            return 'access denied';
-        };
+        // Check if user is authenticated and has admin role
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            return response()->json(['error' => 'Access denied'], 403);
+        }
+        
+        $notifs = DB::table('notifs')->where('is_readed', false)->where('is_user', 0)->orderBy('created', 'desc')->limit(7)->get();
+        $deposits = DB::table('verify_req')->where('type', 0)->where('status', 0)->get();
+        $debits = DB::table('verify_req')->where('type', 1)->where('status', 0)->get();
+        $buys = DB::table('verify_req')->where('type', 2)->where('status', 0)->get();
+        $sells = DB::table('verify_req')->where('type', 3)->where('status', 0)->get();
+        $dep_t = DB::table('verify_req')->where('type', 4)->where('status', 0)->get();
+        $deb_t = DB::table('verify_req')->where('type', 5)->where('status', 0)->get();
+        $hesabs = DB::table('bank_info')->orderBy('time', 'desc')->where('verify', 0)->get();
+        $acc = DB::table('users')->orderBy('created_at', 'desc')->where('verify', 0)->get();
+        $counts = array(
+            "dep" => count($deposits),
+            "dept" => count($dep_t),
+            "deb" => count($debits),
+            "debt" => count($deb_t),
+            "buy" => count($buys),
+            "sell" => count($sells),
+            "hesab" => count($hesabs),
+            "acc" => count($acc),
+        );
+        $all = array(
+            $notifs,
+            $counts
+        );
+        return $all;
     }
     public function adm_noticed(Request $request, $id)
     {
-        $user = DB::table('users')->where('id', $request->user()->id)->get();
-        if ($user[0]->verify > 1) {
-            try {
-                DB::table('notifs')->where('id', $id)->update([
-                    'is_noticed' => 1
-                ]);
-            } catch (Exception $e) {
-                return $e;
-            }
-            return 'succ';
-        } else {
-            return 'access denied';
-        };
+        // Check if user is authenticated and has admin role
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            return response()->json(['error' => 'Access denied'], 403);
+        }
+        
+        try {
+            DB::table('notifs')->where('id', $id)->update([
+                'is_noticed' => 1
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+        return response()->json(['message' => 'success']);
     }
     public function adm_notif_item(Request $request, $id)
     {
-        $user = DB::table('users')->where('id', $request->user()->id)->get();
-        if ($user[0]->verify > 1) {
-            try {
-                DB::table('notifs')->where('id', $id)->update([
-                    'is_noticed' => 1
-                ]);
-            } catch (Exception $e) {
-                return $e;
-            }
-            return 'succ';
-        } else {
-            return 'access denied';
-        };
+        // Check if user is authenticated and has admin role
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            return response()->json(['error' => 'Access denied'], 403);
+        }
+        
+        try {
+            DB::table('notifs')->where('id', $id)->update([
+                'is_noticed' => 1
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+        return response()->json(['message' => 'success']);
     }
     public function admin(Request $request)
     {
+        // Check if user is authenticated and has admin role
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            return redirect()->route('login');
+        }
+        
         $users = DB::table('users')->orderBy('created_at', 'desc')->take(10)->get();
         $courses = DB::table('courses')->orderBy('created_at', 'asc')->get();
         return Jetstream::inertia()->render($request, 'Admin/Panel', [
@@ -103,23 +111,29 @@ class admin extends Controller
 
     public function upmg(Request $request)
     {
+        // Check if user is authenticated and has admin role
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            return response()->json(['error' => 'Access denied'], 403);
+        }
+        
         $request->validate([
             'id' => ['required', 'integer'],
-            'img' => 'image|mimes:png,jpg,j/peg|max:20048',
+            'img' => 'image|mimes:png,jpg,jpeg|max:20048', // Fixed the typo in 'j/peg'
             'type' => ['required', 'string']
         ]);
-        $user = DB::table('users')->where('id', $request->user()->id)->get();
+        
+        $user = $request->user();
         $path = $request->file('img')->store('photos', 'private');
         $photo = Photo::create([
             'path' => $path,
-            'user_id' => $user[0]->id,
+            'user_id' => $user->id,
         ]);
         $image_path = $photo->id;
 
         if ($request->type == "section_img") {
         } else if ($request->type == "course_img") {
-            $course = DB::table('courses')->where('id', $request->id)->get();
-            if (isset($course[0]) && isset($request->img)) {
+            $course = DB::table('courses')->where('id', $request->id)->first(); // Use first() instead of get()
+            if ($course && $request->hasFile('img')) {
                 DB::table('courses')->where('id', $request->id)->update([
                     'imgurl' => $image_path
                 ]);
@@ -130,13 +144,18 @@ class admin extends Controller
     }
     public function delmg(Request $request)
     {
+        // Check if user is authenticated and has admin role
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            return response()->json(['error' => 'Access denied'], 403);
+        }
+        
         $request->validate([
             'id' => ['required', 'integer'],
             'type' => ['required', 'string']
         ]);
-        $course = DB::table('courses')->where('id', $request->id)->get();
+        $course = DB::table('courses')->where('id', $request->id)->first();
 
-        if (isset($course[0])) {
+        if ($course) {
             DB::table('courses')->where('id', $request->id)->update([
                 'imgurl' => ""
             ]);
@@ -147,6 +166,11 @@ class admin extends Controller
 
     public function users(Request $request)
     {
+        // Check if user is authenticated and has admin role
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            return redirect()->route('login');
+        }
+        
         $users = DB::table('users')->orderBy('created_at', 'desc')->get();
 
         return Jetstream::inertia()->render($request, 'Admin/Users', [
@@ -156,7 +180,17 @@ class admin extends Controller
 
     public function user(Request $request, $id)
     {
-        $acc = DB::table('users')->where('id', $id)->get();
+        // Check if user is authenticated and has admin role
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            return redirect()->route('login');
+        }
+        
+        $acc = DB::table('users')->where('id', $id)->first();
+        
+        if (!$acc) {
+            abort(404, 'User not found');
+        }
+        
         return Jetstream::inertia()->render($request, 'Admin/user', [
             'user' => $acc
         ]);
@@ -164,6 +198,11 @@ class admin extends Controller
 
     public function courses(Request $request)
     {
+        // Check if user is authenticated and has admin role
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            return redirect()->route('login');
+        }
+        
         $courses = DB::table('courses')->orderBy('created_at', 'asc')->get();
 
         return Jetstream::inertia()->render($request, 'Admin/courses', [
@@ -173,6 +212,11 @@ class admin extends Controller
 
     public function add_course(Request $request)
     {
+        // Check if user is authenticated and has admin role
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            return redirect()->route('login');
+        }
+        
         return Jetstream::inertia()->render($request, 'Admin/add_course', []);
     }
 
@@ -180,6 +224,11 @@ class admin extends Controller
 
     public function add_course_full(Request $request)
     {
+        // Check if user is authenticated and has admin role
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            return response()->json(['error' => 'Access denied'], 403);
+        }
+        
         $request->validate([
             'title' => 'required|string|max:255',
             'grade' => 'required|integer',
@@ -274,6 +323,11 @@ class admin extends Controller
 
     public function edit_course(Request $request, $id)
     {
+        // Check if user is authenticated and has admin role
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            return redirect()->route('login');
+        }
+
         // 1. دریافت دوره
         $course = DB::table('courses')->where('id', $id)->first();
 
@@ -355,6 +409,11 @@ class admin extends Controller
 
         public function update_course(Request $request, $id)
     {
+        // Check if user is authenticated and has admin role
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            return response()->json(['error' => 'Access denied'], 403);
+        }
+        
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -468,6 +527,10 @@ class admin extends Controller
 
     public function photos(Request $request)
     {
+        // Check if user is authenticated and has admin role
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            return redirect()->route('login');
+        }
 
         $photos = DB::table('photos')->get();
         return Jetstream::inertia()->render($request, 'Admin/photos', [
