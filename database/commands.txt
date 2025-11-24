@@ -1,0 +1,9 @@
+UPDATE `verify_req` SET `type`= 0,`vahed`= 6 WHERE `type` = 4;
+
+UPDATE `verify_req` SET `vahed`= 0 WHERE `type` = 0;
+
+UPDATE `transforms` SET `type`= 0 WHERE `type` = 4;
+
+UPDATE `verify_req` SET `vahed`= 0 WHERE `type` = 1;
+
+UPDATE `verify_req` SET `type`= 0,`vahed`= 6 WHERE `type` = 5;
